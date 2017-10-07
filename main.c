@@ -92,7 +92,12 @@ int main(int argc, char *argv[])
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
 
-    if (pHead->pNext) free(pHead->pNext);
+    entry *tmp;
+    while (pHead->pNext) {
+        tmp = pHead->pNext;
+        free(pHead);
+        pHead = tmp;
+    }
     free(pHead);
 
     return 0;
