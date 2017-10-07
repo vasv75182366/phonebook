@@ -1,6 +1,7 @@
 #ifndef _PHONEBOOK_H
 #define _PHONEBOOK_H
 
+#define ORIG 1
 #define MAX_LAST_NAME_SIZE 16
 
 /* original version */

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "phonebook_opt.h"
+#include "phonebook_hash.h"
 
 /* TODO: FILL YOUR OWN IMPLEMENTATION HERE! */
 entry *findName(char lastName[], entry *pHead)
@@ -28,6 +28,7 @@ entry *append(char lastName[], entry *e)
 // BKDR Hash Function
 unsigned int BKDRHash(char *str)
 {
+
     unsigned int seed = 131; // 31 131 1313 13131 131313 etc..
     unsigned int hash = 0;
     while (*str) {

@@ -8,7 +8,13 @@
 
 #ifdef OPT
 #define OUT_FILE "opt.txt"
-#else
+#endif
+
+#ifdef HASH
+#define OUT_FILE "hash.txt"
+#endif
+
+#ifdef ORIG
 #define OUT_FILE "orig.txt"
 #endif
 
@@ -41,13 +47,22 @@ int main(int argc, char *argv[])
         printf("cannot open the file\n");
         return -1;
     }
-
+#ifndef HASH
     /* build the entry */
     entry *pHead, *e;
     pHead = (entry *) malloc(sizeof(entry));
-    printf("size of entry : %lu bytes\n", sizeof(entry));
     e = pHead;
     e->pNext = NULL;
+#else
+    entry *pHead[HASH_TABLE_SIZE], *e[HASH_TABLE_SIZE];
+    for (i = 0; i < HASH_TABLE_SIZE; i++) {
+        pHead[i] = malloc(sizeof(entry));
+        pHead[i]->pNext = NULL;
+        e[i] = pHead[i];
+    }
+#endif
+
+    printf("size of entry : %lu bytes\n", sizeof(entry));
 
 #if defined(__GNUC__)
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
@@ -58,7 +73,11 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
+#ifndef HASH
         e = append(line, e);
+#else
+        e[BKDRHash(line)] = append(line,e[BKDRHash(line)]);
+#endif
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -66,22 +85,30 @@ int main(int argc, char *argv[])
     /* close file as soon as possible */
     fclose(fp);
 
-    e = pHead;
-
     /* the givn last name to find */
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
+#ifndef HASH
     e = pHead;
-
     assert(findName(input, e) &&
            "Did you implement findName() in " IMPL "?");
     assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+#else
+    e[BKDRHash(input)] = pHead[BKDRHash(input)];
+    assert(findName(input, e[BKDRHash(input)]) &&
+           "Did you implement findName() in " IMPL "?");
+    assert(0 == strcmp(findName(input, e[BKDRHash(input)])->lastName, "zyxel"));
+#endif
 
 #if defined(__GNUC__)
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
 #endif
     /* compute the execution time */
     clock_gettime(CLOCK_REALTIME, &start);
+#ifndef HASH
     findName(input, e);
+#else
+    findName(input, e[BKDRHash(input)]);
+#endif
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time2 = diff_in_second(start, end);
 
@@ -91,7 +118,7 @@ int main(int argc, char *argv[])
 
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
-
+#ifndef HASH
     entry *tmp;
     while (pHead->pNext) {
         tmp = pHead->pNext;
@@ -99,6 +126,16 @@ int main(int argc, char *argv[])
         pHead = tmp;
     }
     free(pHead);
-
+#else
+    for (i = 0; i < HASH_TABLE_SIZE; i++) {
+        entry *tmp;
+        while (pHead[i]->pNext) {
+            tmp = pHead[i]->pNext;
+            free(pHead[i]);
+            pHead[i] = tmp;
+        }
+        free(pHead[i]);
+    }
+#endif
     return 0;
 }
