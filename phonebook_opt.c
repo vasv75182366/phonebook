@@ -1,5 +1,5 @@
 #include <stdlib.h>
-
+#include <string.h>
 #include "phonebook_opt.h"
 
 /* TODO: FILL YOUR OWN IMPLEMENTATION HERE! */
